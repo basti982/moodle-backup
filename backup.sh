@@ -2,6 +2,7 @@
 #################### REQUIREMENTS #####################################
 # - Install p7zip (e.g. sudo apt-get install p7zip p7zip-full p7zip-rar)
 # - Change the path to the config.php file
+# - Install (e.g. sudo apt install cifs-utils)
 #######################################################################
 # Backup Data folder and SQL Dump
 copy () {
@@ -33,6 +34,17 @@ rename (){
  	cp $file_name $new_fileName
 	}
 
+# Copy backupfile to \\anyshare (mounted in fstab)
+copytoshare (){	
+ 	cp $new_fileName /media/backup/
+	echo "File $new_fileName copied to backup share."
+	}
+
+# Remove all files except 5 newest backupsets
+removeoldest (){	
+ 	find /media/backup/ -name "*.7z" | sort -r | tail -n +6 | xargs rm -- 	
+	}
+
 # The path to the moodle config.php
 moodlepath=/var/www/html/moodle
 configpath=$moodlepath/config.php 
@@ -45,4 +57,4 @@ dbpass=$(grep dbpass $configpath | grep -Eo "'[A-Za-z0-9][A-Za-z0-9]*"| grep -Eo
 dataroot=$(grep dataroot $configpath | grep -Eo "[/][A-Za-z0-9/]*")
 
 # Run the functions
-copy&&compress&&rename&&remove;
+copy&&compress&&rename&&remove&&copytoshare&&removeoldest;
